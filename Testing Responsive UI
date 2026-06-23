@@ -1,0 +1,422 @@
+﻿Test Type: Component UI
+
+Feature: Component UI - Fus1on UI Responsiveness Phase 1
+
+Purpose:
+Validate that the Asset Search and Map Dashboard components render correctly, display required data fields, and remain functional across mobile and tablet viewports.
+
+Automation Recommendation: automatable
+
+Background:
+Given the relevant UI page or component is loaded
+And required test data or state is available
+
+---
+
+## TC-UI-001 — Asset Search displays Idle time on mobile viewport-N/A
+
+```gherkin
+Scenario: Primary interaction - asset search shows Idle time on mobile
+  Given the Asset Search component is loaded on a mobile viewport
+  And at least one trailer with idle time data is available in the system
+  When the user views the asset search results
+  Then the Idle time for each trailer should be displayed in the search results
+  And the Idle time should be readable without horizontal scrolling
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads without errors |
+| 3 | Confirm at least one trailer with idle time data exists in the test environment | Test data is confirmed available |
+| 4 | Observe the asset search results list | Results are rendered on screen |
+| 5 | Inspect each result row for the Idle time field | Idle time value is displayed for each trailer |
+| 6 | Confirm no horizontal scroll bar is present | All content is visible within the viewport |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC4, SC-001, EC-1
+
+---
+
+## TC-UI-002 — Map Dashboard geofence filtering renders correctly on mobile viewport
+
+```gherkin
+Scenario: Primary interaction - geofence filter applied on mobile map
+  Given the Map Dashboard component is loaded on a mobile viewport
+  And geofence data and trailer location data are available
+  When the user applies a geofence filter
+  Then only trailers within the selected geofence boundary should be displayed on the map
+  And the geofence filter controls should be accessible and usable on the mobile layout
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Map Dashboard page | Map Dashboard loads with geofence and trailer data |
+| 3 | Locate the geofence filter control | Filter control is visible on the mobile layout |
+| 4 | Select a geofence from the filter | Filter is applied to the map view |
+| 5 | Inspect the map for displayed trailers | Only trailers within the selected geofence boundary are shown |
+| 6 | Verify geofence filter controls remain accessible | No controls are hidden or unreachable on mobile |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC4, SC-002, EC-2
+
+---
+
+## TC-UI-003 — Asset Search displays current location on mobile viewport
+
+```gherkin
+Scenario: Primary interaction - asset search shows current location on mobile
+  Given the Asset Search component is loaded on a mobile viewport
+  And at least one trailer with a known location is available
+  When the user views the asset search results
+  Then the current location of each trailer should be displayed in the search results
+  And the location data should be visible and readable on the mobile layout
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads without errors |
+| 3 | Confirm at least one trailer with a known location exists in the test environment | Test data is confirmed available |
+| 4 | Observe the asset search results list | Results are rendered on screen |
+| 5 | Inspect each result row for the current location field | Current location is displayed for each trailer |
+| 6 | Confirm location data is readable without overflow or clipping | Text is fully visible within the row |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC2, SC-001
+
+---
+
+## TC-UI-004 — Asset Search displays MCU battery status on mobile viewport
+
+```gherkin
+Scenario: Primary interaction - asset search shows MCU battery on mobile
+  Given the Asset Search component is loaded on a mobile viewport
+  And at least one trailer with MCU battery data is available
+  When the user views the asset search results
+  Then the MCU battery status for each trailer should be displayed in the search results
+  And the battery status should be readable without layout overflow
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads without errors |
+| 3 | Confirm at least one trailer with MCU battery data exists in the test environment | Test data is confirmed available |
+| 4 | Observe the asset search results list | Results are rendered on screen |
+| 5 | Inspect each result row for the MCU battery status field | MCU battery status is displayed for each trailer |
+| 6 | Confirm the battery status is readable with no layout overflow | No overflow or clipping present |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC3, SC-001
+
+---
+
+## TC-UI-005 — Map Dashboard renders trailers on mobile viewport
+
+```gherkin
+Scenario: Primary interaction - map dashboard shows trailers on mobile
+  Given the Map Dashboard component is loaded on a mobile viewport
+  And trailer location data is available
+  When the user views the Map Dashboard
+  Then trailer markers should be displayed on the map
+  And the map should be fully interactive without layout overflow
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Map Dashboard page | Map Dashboard component loads |
+| 3 | Confirm trailer location data is available in the test environment | At least one trailer marker is displayable |
+| 4 | Observe the map view | Trailer markers are displayed on the map |
+| 5 | Pan and zoom the map | Map responds to interactions without layout breaking |
+| 6 | Confirm no horizontal layout overflow exists | Map fills the viewport without a horizontal scrollbar |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC2, SC-002
+
+---
+
+## TC-UI-006 — Map Dashboard search filters trailers by identifier on mobile
+
+```gherkin
+Scenario: Primary interaction - search filters trailers on mobile map
+  Given the Map Dashboard component is loaded on a mobile viewport
+  And multiple trailers are visible on the map
+  When the user enters a valid trailer identifier in the search field
+  Then only matching trailers should be displayed on the map
+  And the search results should be accessible without horizontal scrolling
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Map Dashboard page | Multiple trailers are visible on the map |
+| 3 | Locate the search field | Search input is visible and accessible on mobile layout |
+| 4 | Enter a valid trailer identifier in the search field | Search field accepts input |
+| 5 | Submit the search | Only trailers matching the identifier are displayed on the map |
+| 6 | Confirm search results are accessible without horizontal scrolling | All results visible within the viewport |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC3, SC-002
+
+---
+
+## TC-UI-007 — Asset Search is accessible and functional on tablet viewport
+
+```gherkin
+Scenario: State persistence or transition - asset search adapts to tablet viewport
+  Given the Asset Search component is loaded on a tablet viewport
+  And trailer data with current location, MCU battery, and Idle time is available
+  When the user views the asset search results
+  Then current location, MCU battery, and Idle time should all be visible and accessible
+  And the layout should adapt correctly to the tablet viewport without truncation
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 768px width | Browser renders at tablet resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads |
+| 3 | Confirm trailer data with location, MCU battery, and Idle time is available | All three data fields are present in the test environment |
+| 4 | Observe the asset search results | Results are rendered |
+| 5 | Verify the current location field is visible and untruncated | Location data fully displayed |
+| 6 | Verify the MCU battery field is visible and untruncated | Battery data fully displayed |
+| 7 | Verify the Idle time field is visible and untruncated | Idle time fully displayed |
+| 8 | Confirm the layout adapts correctly to the tablet viewport | No truncation, clipping, or overflow |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC5, SC-001, FR-001
+
+---
+
+## TC-UI-008 — Map Dashboard is accessible and functional on tablet viewport
+
+```gherkin
+Scenario: State persistence or transition - map dashboard adapts to tablet viewport
+  Given the Map Dashboard component is loaded on a tablet viewport
+  And trailer, search, and geofence data are available
+  When the user views the Map Dashboard
+  Then trailers, the search field, and geofence filtering controls should all be visible and usable
+  And the layout should adapt correctly to the tablet viewport without truncation
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 768px width | Browser renders at tablet resolution |
+| 2 | Navigate to the Map Dashboard page | Map Dashboard loads with trailer and geofence data |
+| 3 | Verify trailers are displayed on the map | Trailer markers visible on the map |
+| 4 | Locate and interact with the search field | Search field is accessible and accepts input |
+| 5 | Locate and interact with the geofence filter controls | Filter controls are accessible and respond to interaction |
+| 6 | Confirm the layout adapts correctly to the tablet viewport | No truncation, overlap, or hidden elements |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC5, SC-002, FR-001
+
+---
+
+## TC-UI-009 — Asset Search shows appropriate empty state when no results found on mobile
+
+```gherkin
+Scenario: Validation behavior - no search results on mobile
+  Given the Asset Search component is loaded on a mobile viewport
+  When the user searches for an asset identifier that does not exist in the system
+  Then an appropriate empty state message should be displayed
+  And the component layout should remain stable with no broken or overflowing elements
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads |
+| 3 | Enter a trailer identifier that does not exist in the system | Search field accepts the input |
+| 4 | Submit the search | Search executes |
+| 5 | Observe the results area | An appropriate empty state message is displayed |
+| 6 | Inspect the component for broken or overflowing elements | Layout is stable with no visual breakage |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC1, EC-1
+
+---
+
+## TC-UI-010 — Asset Search rejects empty search query on mobile
+
+```gherkin
+Scenario: Validation behavior - empty search query on mobile
+  Given the Asset Search component is loaded on a mobile viewport
+  And the search input field is visible and active
+  When the user submits the search form with an empty query
+  Then an appropriate validation message should be displayed
+  And the search should not be submitted
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads with search input visible |
+| 3 | Clear the search input field | Input field is empty |
+| 4 | Submit the search form without entering any text | Form submission is attempted |
+| 5 | Observe the validation feedback | An appropriate validation message is displayed |
+| 6 | Confirm no search was triggered | No results, loading state, or API call is initiated |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC1
+
+---
+
+## TC-UI-011 — Map Dashboard displays empty state when search returns no matching trailers on mobile
+
+```gherkin
+Scenario: Validation behavior - no matching trailers in search on mobile
+  Given the Map Dashboard component is loaded on a mobile viewport
+  When the user searches for a trailer identifier that does not exist in the system
+  Then an appropriate no-results message should be displayed
+  And the map view should remain stable and usable with controls still accessible
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Map Dashboard page | Map Dashboard loads |
+| 3 | Enter a trailer identifier that does not exist in the system into the search field | Input is accepted |
+| 4 | Submit the search | Search executes |
+| 5 | Observe the map for trailer markers | No trailer markers are displayed |
+| 6 | Check for a no-results message | An appropriate no-results message is shown |
+| 7 | Verify map controls remain accessible | Controls are still visible and usable |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC3, EC-1
+
+---
+
+## TC-UI-012 — Map Dashboard displays feedback when geofence filter returns no trailers on mobile
+
+```gherkin
+Scenario: Validation behavior - geofence with no trailers on mobile
+  Given the Map Dashboard component is loaded on a mobile viewport
+  And a geofence that contains no trailers is available
+  When the user applies the empty geofence as a filter
+  Then an appropriate message should indicate no trailers are within the selected geofence
+  And the map controls and filter options should remain accessible
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to 375px width | Browser renders at mobile resolution |
+| 2 | Navigate to the Map Dashboard page | Map Dashboard loads |
+| 3 | Identify a geofence that contains no trailers in the test environment | Geofence with no trailers confirmed available |
+| 4 | Select and apply the empty geofence as a filter | Filter is applied |
+| 5 | Observe the map for trailer markers | No trailer markers are displayed |
+| 6 | Check for an appropriate feedback message | Message indicates no trailers are within the selected geofence |
+| 7 | Verify map controls and filter options remain accessible | All controls remain visible and usable |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC4, SC-002, EC-2
+
+---
+
+## TC-UI-013 — Asset Search layout renders without overflow across mobile breakpoints
+
+```gherkin
+Scenario Outline: Input or state variation matrix - asset search viewport compliance
+  Given the Asset Search component is loaded on a <viewport_width> viewport
+  When the user views the asset search results containing location, MCU battery, and Idle time data
+  Then the component layout should render correctly at <viewport_width>
+  And all data fields should be visible without horizontal scrolling or content clipping
+
+Examples:
+  | viewport_width |
+  | 375px          |
+  | 390px          |
+  | 414px          |
+  | 768px          |
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to the specified `viewport_width` (375px, 390px, 414px, 768px) | Browser renders at the specified resolution |
+| 2 | Navigate to the Asset Search page | Asset Search component loads |
+| 3 | Confirm trailer data with location, MCU battery, and Idle time is available | Test data confirmed present |
+| 4 | Observe the asset search results list | Layout renders correctly at the specified width |
+| 5 | Check for a horizontal scroll bar | No horizontal scrolling is present |
+| 6 | Check all data fields for clipping | All fields (location, MCU battery, Idle time) are fully visible |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US1-AC1, US1-AC2, US1-AC3, US1-AC4, FR-001
+
+---
+
+## TC-UI-014 — Map Dashboard layout renders without overflow across mobile breakpoints
+
+```gherkin
+Scenario Outline: Input or state variation matrix - map dashboard viewport compliance
+  Given the Map Dashboard component is loaded on a <viewport_width> viewport
+  When the user interacts with the map, search field, and geofence filter
+  Then the component layout should render correctly at <viewport_width>
+  And all controls should be usable without horizontal scrolling or element overlap
+
+Examples:
+  | viewport_width |
+  | 375px          |
+  | 390px          |
+  | 414px          |
+  | 768px          |
+```
+
+### Test Steps
+
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Set browser viewport to the specified `viewport_width` (375px, 390px, 414px, 768px) | Browser renders at the specified resolution |
+| 2 | Navigate to the Map Dashboard page | Map Dashboard component loads |
+| 3 | Interact with the map (pan, zoom) | Map responds correctly |
+| 4 | Interact with the search field | Search field is accessible and functional |
+| 5 | Interact with the geofence filter | Filter control is accessible and functional |
+| 6 | Check for a horizontal scroll bar | No horizontal scrolling is present |
+| 7 | Check all controls for overlap | No controls overlap or become unreachable |
+
+Automation Recommendation: automatable
+
+Traceability: FS-1565 > US2-AC1, US2-AC2, US2-AC3, US2-AC4, FR-001
+
+---
+
