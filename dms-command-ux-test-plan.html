@@ -1,0 +1,591 @@
+<title>DMS Command UX — Test Plan</title>
+<style>
+:root {
+  --ground: #F4F5F7;
+  --surface: #FFFFFF;
+  --text: #1A1B1E;
+  --text-muted: #6B7280;
+  --blue: #1E3A5F;
+  --blue-light: #EBF0F7;
+  --accent: #C73A19;
+  --green: #166534;
+  --green-light: #F0FDF4;
+  --green-border: #BBF7D0;
+  --border: #D1D5DB;
+  --rule: #E5E7EB;
+  --mono: 'Cascadia Code', Consolas, 'Lucida Console', monospace;
+  --sans: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--ground); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; }
+
+/* HERO */
+.hero { background: var(--blue); padding: 40px 48px 36px; }
+.hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: #93C5FD; margin-bottom: 8px; }
+.hero-title { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -.02em; margin-bottom: 14px; }
+.hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+.hero-tag { font-family: var(--mono); font-size: 10px; color: #CBD5E1; background: rgba(255,255,255,.08); padding: 3px 8px; border-radius: 2px; letter-spacing: .05em; }
+.monitor-label { font-family: var(--mono); font-size: 10px; color: #475569; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 10px; }
+.status-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.sbadge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; padding: 5px 10px; border-radius: 3px; }
+.sbadge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.s-pending { background: rgba(59,130,246,.18); color: #93C5FD; } .s-pending::before { background: #60A5FA; }
+.s-inprogress { background: rgba(99,102,241,.18); color: #A5B4FC; } .s-inprogress::before { background: #818CF8; }
+.s-successful { background: rgba(34,197,94,.18); color: #86EFAC; } .s-successful::before { background: #4ADE80; }
+.s-failed { background: rgba(239,68,68,.18); color: #FCA5A5; } .s-failed::before { background: #F87171; }
+.s-stale { background: rgba(156,163,175,.18); color: #9CA3AF; } .s-stale::before { background: #6B7280; }
+.hero-stats { display: flex; gap: 36px; flex-wrap: wrap; }
+.stat-item { display: flex; flex-direction: column; gap: 4px; }
+.stat-n { font-size: 30px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -.03em; }
+.stat-l { font-family: var(--mono); font-size: 10px; color: #6B7280; letter-spacing: .12em; text-transform: uppercase; }
+
+/* LAYOUT */
+.content { max-width: 920px; margin: 0 auto; padding: 40px 28px 64px; }
+.section { margin-bottom: 44px; }
+.section-head { display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--blue); margin-bottom: 20px; }
+.sec-eye { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; }
+.sec-title { font-size: 16px; font-weight: 700; color: var(--blue); letter-spacing: -.01em; }
+
+/* SCOPE */
+.scope-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+.scope-cell { background: var(--surface); padding: 14px 16px; }
+.cell-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
+.cell-val { font-size: 13px; font-weight: 600; color: var(--text); }
+.cell-val.mono { font-family: var(--mono); font-size: 11px; }
+
+.us-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.us-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--blue); border-radius: 4px; padding: 14px; }
+.us-id { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+.us-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.ac-list { display: flex; flex-direction: column; gap: 5px; }
+.ac-item { display: flex; gap: 6px; align-items: flex-start; }
+.ac-code { font-family: var(--mono); font-size: 10px; color: var(--accent); background: #FEF2F2; padding: 1px 5px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
+.ac-desc { font-size: 11px; color: var(--text-muted); }
+
+/* NOTES */
+.risk-note { background: #FFFBEB; border-left: 3px solid #F59E0B; border-radius: 0 4px 4px 0; padding: 12px 16px; margin-bottom: 28px; }
+.risk-note-label { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: #B45309; text-transform: uppercase; margin-bottom: 5px; }
+.risk-note p { font-size: 12px; color: #78350F; }
+
+/* TEST CASE CARDS */
+.tc-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 0 6px 6px 0; margin-bottom: 14px; overflow: hidden; }
+.tc-card.us3-card { border-left-color: var(--accent); }
+.tc-head { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: #F9FAFB; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.tc-zid { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--blue); background: var(--blue-light); padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+.tc-title { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; min-width: 0; }
+.tc-trace { font-family: var(--mono); font-size: 10px; color: var(--accent); background: #FEF2F2; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+.tc-body { padding: 16px 18px; }
+.precond-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+.precond-list { list-style: none; margin-bottom: 16px; display: flex; flex-direction: column; gap: 3px; }
+.precond-list li { font-size: 12px; color: var(--text); padding-left: 14px; position: relative; }
+.precond-list li::before { content: '›'; position: absolute; left: 0; color: var(--text-muted); }
+
+/* STEPS TABLE */
+.steps-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+.steps-tbl { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
+.steps-tbl thead th { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); text-align: left; padding: 6px 10px; background: #F9FAFB; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.steps-tbl tbody td { padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; line-height: 1.5; }
+.step-num { font-family: var(--mono); font-size: 10px; color: var(--text-muted); width: 30px; white-space: nowrap; }
+.step-kw { font-family: var(--mono); font-size: 11px; font-weight: 700; white-space: nowrap; width: 60px; }
+.kw-given { color: #1D4ED8; } .kw-when { color: #7C3AED; } .kw-then { color: var(--green); } .kw-and { color: #9CA3AF; font-weight: 400; }
+.step-text { color: var(--text); }
+
+/* EXPECTED / RESULT */
+.expected-box { background: var(--green-light); border: 1px solid var(--green-border); border-radius: 4px; padding: 10px 14px; margin-bottom: 12px; }
+.exp-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #15803D; margin-bottom: 5px; }
+.exp-text { font-size: 12px; color: #166534; }
+.result-row { display: flex; align-items: center; gap: 6px; }
+.result-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-right: 2px; }
+.rbtn { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .05em; padding: 4px 12px; border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); background: var(--surface); cursor: default; }
+.rbtn-pass { border-color: #86EFAC; color: var(--green); }
+.rbtn-fail { border-color: #FCA5A5; color: #B91C1C; }
+.rbtn-blocked { border-color: #FDE68A; color: #92400E; }
+
+/* OUTLINE TABLE */
+.outline-tbl { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
+.outline-tbl th { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; background: var(--blue-light); color: var(--blue); padding: 8px 12px; text-align: left; border: 1px solid #C7D7EF; }
+.outline-tbl td { padding: 8px 12px; border: 1px solid var(--rule); }
+.outline-tbl tr:nth-child(even) td { background: #FAFAFA; }
+.ol-res-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+
+/* TRACEABILITY MATRIX */
+.matrix-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.matrix-tbl th { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; background: var(--blue); color: #fff; padding: 10px 14px; text-align: left; }
+.matrix-tbl td { padding: 9px 14px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.matrix-tbl tr:nth-child(even) td { background: #FAFAFA; }
+.mid-tcid { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--blue); }
+.trace-pill { font-family: var(--mono); font-size: 10px; color: var(--accent); background: #FEF2F2; padding: 2px 6px; border-radius: 2px; display: inline-block; }
+
+/* ENVIRONMENT */
+.env-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.env-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+.env-card-title { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+.env-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.env-list li { font-size: 12px; color: var(--text); padding-left: 14px; position: relative; }
+.env-list li::before { content: '•'; position: absolute; left: 0; color: var(--blue); font-weight: 700; }
+
+/* FOOTER */
+.footer { background: var(--blue); padding: 18px 48px; font-family: var(--mono); font-size: 10px; color: #475569; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.footer strong { color: #93C5FD; }
+.footer span { color: #64748B; }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .hero { padding: 24px 20px; }
+  .content { padding: 24px 16px; }
+  .scope-grid, .us-row, .env-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 24px; }
+  .stat-n { font-size: 24px; }
+  .footer { padding: 16px 20px; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<!-- HERO -->
+<header class="hero">
+  <p class="hero-eyebrow">DEVICE MANAGEMENT SERVICE · BRANCH: 20260617-150530-dms-command-ux</p>
+  <h1 class="hero-title">Command UX — Test Plan</h1>
+  <div class="hero-tags">
+    <span class="hero-tag">STATUS: DRAFT</span>
+    <span class="hero-tag">TEST TYPE: MANUAL</span>
+    <span class="hero-tag">DATE: 2026-06-22</span>
+    <span class="hero-tag">SPEC REV: 1.0</span>
+  </div>
+  <p class="monitor-label">Command states under test</p>
+  <div class="status-strip">
+    <span class="sbadge s-pending">PENDING</span>
+    <span class="sbadge s-inprogress">IN PROGRESS</span>
+    <span class="sbadge s-successful">SUCCESSFUL</span>
+    <span class="sbadge s-failed">FAILED</span>
+    <span class="sbadge s-stale">STALE</span>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item"><span class="stat-n">7</span><span class="stat-l">Test Cases</span></div>
+    <div class="stat-item"><span class="stat-n">3</span><span class="stat-l">User Stories</span></div>
+    <div class="stat-item"><span class="stat-n">6</span><span class="stat-l">Acceptance Criteria</span></div>
+    <div class="stat-item"><span class="stat-n">0</span><span class="stat-l">Automated</span></div>
+  </div>
+</header>
+
+<main class="content">
+
+  <!-- SCOPE -->
+  <section class="section">
+    <div class="section-head">
+      <span class="sec-eye">Scope</span>
+      <h2 class="sec-title">Feature Coverage</h2>
+    </div>
+    <div class="scope-grid">
+      <div class="scope-cell"><div class="cell-lbl">Feature</div><div class="cell-val">DMS Command UX</div></div>
+      <div class="scope-cell"><div class="cell-lbl">Test Type</div><div class="cell-val">Manual · Component UI</div></div>
+      <div class="scope-cell"><div class="cell-lbl">Components In Scope</div><div class="cell-val">Command List · Command Detail</div></div>
+      <div class="scope-cell"><div class="cell-lbl">Out of Scope</div><div class="cell-val">Backend execution, API contracts</div></div>
+      <div class="scope-cell"><div class="cell-lbl">Automation</div><div class="cell-val">Not automated — all manual execution</div></div>
+      <div class="scope-cell"><div class="cell-lbl">Zephyr Tag Range</div><div class="cell-val mono">@DMS-1001 → @DMS-1007</div></div>
+    </div>
+    <div class="us-row">
+      <div class="us-card">
+        <div class="us-id">US1</div>
+        <div class="us-title">Command List Display &amp; Interaction</div>
+        <div class="ac-list">
+          <div class="ac-item"><span class="ac-code">US1-AC1</span><span class="ac-desc">Each row shows status label and metadata</span></div>
+          <div class="ac-item"><span class="ac-code">US1-AC2</span><span class="ac-desc">Filter and sort update the visible list</span></div>
+          <div class="ac-item"><span class="ac-code">US1-AC3</span><span class="ac-desc">Pagination preserves filter and sort state</span></div>
+        </div>
+      </div>
+      <div class="us-card">
+        <div class="us-id">US2</div>
+        <div class="us-title">Command Detail Status &amp; Refresh</div>
+        <div class="ac-list">
+          <div class="ac-item"><span class="ac-code">US2-AC1</span><span class="ac-desc">Detail page shows current status and metadata</span></div>
+          <div class="ac-item"><span class="ac-code">US2-AC2</span><span class="ac-desc">Refresh reflects updated backend status</span></div>
+        </div>
+      </div>
+      <div class="us-card" style="border-top-color:var(--accent);">
+        <div class="us-id" style="color:var(--accent);">US3</div>
+        <div class="us-title">Failed &amp; Stale Command Handling</div>
+        <div class="ac-list">
+          <div class="ac-item"><span class="ac-code">US3-AC1</span><span class="ac-desc">Correct indicator shown; not active or successful</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="risk-note">
+    <div class="risk-note-label">Testing Notes</div>
+    <p>All test cases require a live DMS environment with seeded test data covering every command status. Status changes for TC-UI-005 must be triggered via a controlled backend action — do not rely on coincidental transitions.</p>
+  </div>
+
+  <!-- TEST CASES -->
+  <section class="section">
+    <div class="section-head">
+      <span class="sec-eye">Test Cases</span>
+      <h2 class="sec-title">Test Execution</h2>
+    </div>
+
+    <!-- TC-UI-001 -->
+    <div class="tc-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1001 · TC-UI-001</span>
+        <span class="tc-title">Command list displays status label and metadata for each row</span>
+        <span class="tc-trace">US1-AC1</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>DMS command list page is accessible</li>
+          <li>System contains commands in all states: pending, in-progress, successful, failed, stale</li>
+        </ul>
+        <div class="steps-lbl">Steps</div>
+        <table class="steps-tbl">
+          <thead><tr><th>#</th><th>Keyword</th><th>Step</th></tr></thead>
+          <tbody>
+            <tr><td class="step-num">01</td><td class="step-kw kw-given">Given</td><td class="step-text">The DMS command list page is loaded and commands in all statuses are present in the system</td></tr>
+            <tr><td class="step-num">02</td><td class="step-kw kw-when">When</td><td class="step-text">The user inspects the visible command rows</td></tr>
+            <tr><td class="step-num">03</td><td class="step-kw kw-then">Then</td><td class="step-text">Each visible row displays: command name, command status label, command type, and requested timestamp</td></tr>
+            <tr><td class="step-num">04</td><td class="step-kw kw-and">And</td><td class="step-text">The status label on each row matches the current backend command state</td></tr>
+          </tbody>
+        </table>
+        <div class="expected-box">
+          <div class="exp-lbl">Expected Result</div>
+          <p class="exp-text">All metadata fields are populated per row with no missing or mismatched status labels. Commands in each state are represented and labelled correctly.</p>
+        </div>
+        <div class="result-row">
+          <span class="result-lbl">Result:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+          <span class="rbtn">N/A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC-UI-002 -->
+    <div class="tc-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1002 · TC-UI-002</span>
+        <span class="tc-title">Filter and sort updates the visible command list</span>
+        <span class="tc-trace">US1-AC2</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>Command list contains commands across multiple statuses</li>
+          <li>Status filter and sort controls are visible and enabled</li>
+        </ul>
+        <div class="steps-lbl">Steps</div>
+        <table class="steps-tbl">
+          <thead><tr><th>#</th><th>Keyword</th><th>Step</th></tr></thead>
+          <tbody>
+            <tr><td class="step-num">01</td><td class="step-kw kw-given">Given</td><td class="step-text">The command list is loaded with commands of multiple statuses visible</td></tr>
+            <tr><td class="step-num">02</td><td class="step-kw kw-when">When</td><td class="step-text">The user opens the status filter and selects "Failed"</td></tr>
+            <tr><td class="step-num">03</td><td class="step-kw kw-and">And</td><td class="step-text">The user changes the sort order to "Date Descending"</td></tr>
+            <tr><td class="step-num">04</td><td class="step-kw kw-then">Then</td><td class="step-text">Only failed commands are visible in the list</td></tr>
+            <tr><td class="step-num">05</td><td class="step-kw kw-and">And</td><td class="step-text">Visible rows are ordered from newest to oldest by requested timestamp</td></tr>
+          </tbody>
+        </table>
+        <div class="expected-box">
+          <div class="exp-lbl">Expected Result</div>
+          <p class="exp-text">No non-failed commands appear. Rows are ordered newest first. Filter and sort controls reflect the selected values.</p>
+        </div>
+        <div class="result-row">
+          <span class="result-lbl">Result:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+          <span class="rbtn">N/A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC-UI-003 -->
+    <div class="tc-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1003 · TC-UI-003</span>
+        <span class="tc-title">Pagination preserves filter and sort state</span>
+        <span class="tc-trace">US1-AC3</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>Command list contains more entries than fit on one page</li>
+          <li>Status filter is set to "In Progress"; sort order is "Command Name Ascending"</li>
+        </ul>
+        <div class="steps-lbl">Steps</div>
+        <table class="steps-tbl">
+          <thead><tr><th>#</th><th>Keyword</th><th>Step</th></tr></thead>
+          <tbody>
+            <tr><td class="step-num">01</td><td class="step-kw kw-given">Given</td><td class="step-text">The list is filtered to "In Progress," sorted by "Command Name Ascending," with multiple pages of results</td></tr>
+            <tr><td class="step-num">02</td><td class="step-kw kw-when">When</td><td class="step-text">The user clicks the Next Page control</td></tr>
+            <tr><td class="step-num">03</td><td class="step-kw kw-then">Then</td><td class="step-text">The next page of in-progress commands is displayed</td></tr>
+            <tr><td class="step-num">04</td><td class="step-kw kw-and">And</td><td class="step-text">The status filter remains set to "In Progress"</td></tr>
+            <tr><td class="step-num">05</td><td class="step-kw kw-and">And</td><td class="step-text">The sort order remains "Command Name Ascending"</td></tr>
+          </tbody>
+        </table>
+        <div class="expected-box">
+          <div class="exp-lbl">Expected Result</div>
+          <p class="exp-text">Page advances showing the next set of in-progress commands. Filter and sort are not cleared by the navigation action. No commands from other statuses appear.</p>
+        </div>
+        <div class="result-row">
+          <span class="result-lbl">Result:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+          <span class="rbtn">N/A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC-UI-004 -->
+    <div class="tc-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1004 · TC-UI-004</span>
+        <span class="tc-title">Command detail shows current status and metadata</span>
+        <span class="tc-trace">US2-AC1</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>At least one command exists in the system in a known state</li>
+          <li>Command list page is loaded</li>
+        </ul>
+        <div class="steps-lbl">Steps</div>
+        <table class="steps-tbl">
+          <thead><tr><th>#</th><th>Keyword</th><th>Step</th></tr></thead>
+          <tbody>
+            <tr><td class="step-num">01</td><td class="step-kw kw-given">Given</td><td class="step-text">The command list is loaded with at least one command present</td></tr>
+            <tr><td class="step-num">02</td><td class="step-kw kw-when">When</td><td class="step-text">The user selects a command and opens its detail page</td></tr>
+            <tr><td class="step-num">03</td><td class="step-kw kw-then">Then</td><td class="step-text">The detail page shows the command's current status</td></tr>
+            <tr><td class="step-num">04</td><td class="step-kw kw-and">And</td><td class="step-text">All metadata fields are displayed correctly (name, type, requested timestamp)</td></tr>
+          </tbody>
+        </table>
+        <div class="expected-box">
+          <div class="exp-lbl">Expected Result</div>
+          <p class="exp-text">Status and all metadata fields match the backend state for the selected command. No fields are blank, truncated without cause, or showing stale data from a prior navigation.</p>
+        </div>
+        <div class="result-row">
+          <span class="result-lbl">Result:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+          <span class="rbtn">N/A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC-UI-005 -->
+    <div class="tc-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1005 · TC-UI-005</span>
+        <span class="tc-title">Refresh reflects updated command status in list and detail</span>
+        <span class="tc-trace">US2-AC2</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>A known command's status has been changed in the backend since the page was last loaded</li>
+          <li>The page currently shows the outdated status</li>
+        </ul>
+        <div class="steps-lbl">Steps</div>
+        <table class="steps-tbl">
+          <thead><tr><th>#</th><th>Keyword</th><th>Step</th></tr></thead>
+          <tbody>
+            <tr><td class="step-num">01</td><td class="step-kw kw-given">Given</td><td class="step-text">A command status has changed in the backend; the UI still shows the outdated status</td></tr>
+            <tr><td class="step-num">02</td><td class="step-kw kw-when">When</td><td class="step-text">The user refreshes the command list page</td></tr>
+            <tr><td class="step-num">03</td><td class="step-kw kw-then">Then</td><td class="step-text">The updated command status is shown in the list</td></tr>
+            <tr><td class="step-num">04</td><td class="step-kw kw-when">When</td><td class="step-text">The user opens that command's detail page</td></tr>
+            <tr><td class="step-num">05</td><td class="step-kw kw-then">Then</td><td class="step-text">The detail view also reflects the updated status</td></tr>
+          </tbody>
+        </table>
+        <div class="expected-box">
+          <div class="exp-lbl">Expected Result</div>
+          <p class="exp-text">After refresh, both the list row and the detail page show the most recent backend status. The outdated status is not cached or persisted anywhere in the UI.</p>
+        </div>
+        <div class="result-row">
+          <span class="result-lbl">Result:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+          <span class="rbtn">N/A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC-UI-006 -->
+    <div class="tc-card us3-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1006 · TC-UI-006</span>
+        <span class="tc-title">Failed and stale commands show correct UX treatment in list and detail</span>
+        <span class="tc-trace">US3-AC1</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>At least one command is in Failed state</li>
+          <li>At least one different command is in Stale state</li>
+        </ul>
+        <div class="steps-lbl">Steps</div>
+        <table class="steps-tbl">
+          <thead><tr><th>#</th><th>Keyword</th><th>Step</th></tr></thead>
+          <tbody>
+            <tr><td class="step-num">01</td><td class="step-kw kw-given">Given</td><td class="step-text">A failed command and a stale command are both present in the command list</td></tr>
+            <tr><td class="step-num">02</td><td class="step-kw kw-when">When</td><td class="step-text">The user views the failed command's row in the list</td></tr>
+            <tr><td class="step-num">03</td><td class="step-kw kw-then">Then</td><td class="step-text">A failed indicator is shown; the row does not appear active or successful</td></tr>
+            <tr><td class="step-num">04</td><td class="step-kw kw-when">When</td><td class="step-text">The user views the stale command's row in the list</td></tr>
+            <tr><td class="step-num">05</td><td class="step-kw kw-then">Then</td><td class="step-text">A stale indicator is shown; the row does not appear active or successful</td></tr>
+            <tr><td class="step-num">06</td><td class="step-kw kw-when">When</td><td class="step-text">The user opens the failed command's detail page</td></tr>
+            <tr><td class="step-num">07</td><td class="step-kw kw-then">Then</td><td class="step-text">The detail page shows the correct failed UX treatment (indicator, styling, no active-state affordances)</td></tr>
+            <tr><td class="step-num">08</td><td class="step-kw kw-when">When</td><td class="step-text">The user opens the stale command's detail page</td></tr>
+            <tr><td class="step-num">09</td><td class="step-kw kw-then">Then</td><td class="step-text">The detail page shows the correct stale UX treatment (indicator, styling, no active-state affordances)</td></tr>
+          </tbody>
+        </table>
+        <div class="expected-box">
+          <div class="exp-lbl">Expected Result</div>
+          <p class="exp-text">Failed and stale indicators are visually distinct from each other and from active or successful states. Treatments are consistent between list and detail views. Neither state exposes affordances that imply the command is still actionable.</p>
+        </div>
+        <div class="result-row">
+          <span class="result-lbl">Result:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+          <span class="rbtn">N/A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC-UI-007 -->
+    <div class="tc-card">
+      <div class="tc-head">
+        <span class="tc-zid">@DMS-1007 · TC-UI-007</span>
+        <span class="tc-title">Filter and sort state variations — outline (2 variants)</span>
+        <span class="tc-trace">US1-AC2</span>
+      </div>
+      <div class="tc-body">
+        <div class="precond-lbl">Preconditions</div>
+        <ul class="precond-list">
+          <li>Command list is loaded with commands across all statuses</li>
+          <li>Filter and sort controls are available and responsive</li>
+        </ul>
+        <div class="steps-lbl">Scenario Outline — Execute once per row</div>
+        <table class="outline-tbl">
+          <thead>
+            <tr>
+              <th>Initial State</th>
+              <th>Filter</th>
+              <th>Sort Action</th>
+              <th>Expected Outcome</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>All statuses visible</td>
+              <td>Status = <strong>Failed</strong></td>
+              <td>Date descending</td>
+              <td>Only failed commands appear, ordered newest to oldest</td>
+            </tr>
+            <tr>
+              <td>All statuses visible</td>
+              <td>Status = <strong>Pending</strong></td>
+              <td>Command name ascending</td>
+              <td>Only pending commands appear, ordered A → Z by name</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ol-res-row">
+          <span class="result-lbl">Variant A:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+        </div>
+        <div class="ol-res-row">
+          <span class="result-lbl">Variant B:</span>
+          <span class="rbtn rbtn-pass">PASS</span>
+          <span class="rbtn rbtn-fail">FAIL</span>
+          <span class="rbtn rbtn-blocked">BLOCKED</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- TRACEABILITY MATRIX -->
+  <section class="section">
+    <div class="section-head">
+      <span class="sec-eye">Traceability</span>
+      <h2 class="sec-title">Requirements Coverage Matrix</h2>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="matrix-tbl">
+        <thead>
+          <tr>
+            <th>Zephyr ID</th>
+            <th>TC ID</th>
+            <th>Test Title</th>
+            <th>Traces To</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="mid-tcid">DMS-1001</span></td><td>TC-UI-001</td><td>Command list status and metadata display</td><td><span class="trace-pill">US1-AC1</span></td><td>Manual</td></tr>
+          <tr><td><span class="mid-tcid">DMS-1002</span></td><td>TC-UI-002</td><td>Filter and sort behavior</td><td><span class="trace-pill">US1-AC2</span></td><td>Manual</td></tr>
+          <tr><td><span class="mid-tcid">DMS-1003</span></td><td>TC-UI-003</td><td>Pagination preserves filter and sort state</td><td><span class="trace-pill">US1-AC3</span></td><td>Manual</td></tr>
+          <tr><td><span class="mid-tcid">DMS-1004</span></td><td>TC-UI-004</td><td>Command detail status and metadata</td><td><span class="trace-pill">US2-AC1</span></td><td>Manual</td></tr>
+          <tr><td><span class="mid-tcid">DMS-1005</span></td><td>TC-UI-005</td><td>Refresh reflects updated status</td><td><span class="trace-pill">US2-AC2</span></td><td>Manual</td></tr>
+          <tr><td><span class="mid-tcid">DMS-1006</span></td><td>TC-UI-006</td><td>Failed and stale UX treatment</td><td><span class="trace-pill">US3-AC1</span></td><td>Manual</td></tr>
+          <tr><td><span class="mid-tcid">DMS-1007</span></td><td>TC-UI-007</td><td>Filter and sort outline — 2 variations</td><td><span class="trace-pill">US1-AC2</span></td><td>Manual</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ENVIRONMENT -->
+  <section class="section">
+    <div class="section-head">
+      <span class="sec-eye">Environment</span>
+      <h2 class="sec-title">Test Environment &amp; Sign-Off</h2>
+    </div>
+    <div class="env-grid">
+      <div class="env-card">
+        <div class="env-card-title">Prerequisites</div>
+        <ul class="env-list">
+          <li>DMS environment accessible with test credentials</li>
+          <li>Test data seeded: all 5 command statuses present</li>
+          <li>Enough commands to trigger multi-page pagination</li>
+          <li>Ability to trigger backend status changes for TC-UI-005</li>
+        </ul>
+      </div>
+      <div class="env-card">
+        <div class="env-card-title">Entry Criteria</div>
+        <ul class="env-list">
+          <li>DMS command list feature deployed to test environment</li>
+          <li>Command detail view is accessible from the list</li>
+          <li>Filter, sort, and pagination controls present in UI</li>
+          <li>Branch 20260617-150530-dms-command-ux is under review</li>
+        </ul>
+      </div>
+      <div class="env-card">
+        <div class="env-card-title">Exit Criteria (Pass)</div>
+        <ul class="env-list">
+          <li>All 7 test cases executed with a recorded result</li>
+          <li>No FAIL results, or all FAILs have linked defects</li>
+          <li>All acceptance criteria US1-AC1 through US3-AC1 covered</li>
+        </ul>
+      </div>
+      <div class="env-card">
+        <div class="env-card-title">Sign-Off</div>
+        <ul class="env-list">
+          <li>Tester: ____________________________</li>
+          <li>Date executed: _____________________</li>
+          <li>Environment: _______________________</li>
+          <li>Build / Version: ___________________</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div><strong>DMS Command UX — Test Plan</strong><span> · Branch: 20260617-150530-dms-command-ux</span></div>
+  <div><span>Date: 2026-06-22 · 7 test cases · All manual</span></div>
+</footer>
