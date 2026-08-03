@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "peer-review@sf-plugin-marketplace": true,
+    "qa-tools@sf-plugin-marketplace": true
+  }
+}

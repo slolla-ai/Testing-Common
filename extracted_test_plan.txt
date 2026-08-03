@@ -1,0 +1,452 @@
+Smart Geofence Alert
+BDD Test Plan
+Feature Branch: 20260612-110957-smart-geofence-alert
+Jira Epic: FS-1692
+Source Spec: specs/20260612-110957-smart-geofence-alert/spec.md (fus1on-sdd)
+Impacted Repos: px-alert-notify-service, px-alert-rules-engine, px-report-service, px-web-app-api, px-web-app
+Test Types Covered: Component UI, Component API, Integration, Message Broker
+Generated: 2026-07-08
+
+Feature Summary
+Smart Geofence Alert adds a new "Smart" geofence mode to alert configuration. Instead of selecting individual trailers, a manager selects one or more existing alert configurations; the in-scope trailer set is the union of trailers across those configurations. When an in-scope trailer crosses the geofence boundary (entry or exit), the system automatically captures a snapshot of that trailer's active alerts, notifies configured recipients on every crossing, and exposes a per-location alert health report.
+Scope
+Concern
+Detail
+Configuration UI
+px-web-app — Standard/Smart mode toggle, existing-config picker, crossing report view
+Configuration API
+px-alert-notify-service — AlertController create/update/read of geofenceMode + referencedAlertConfigKeys
+Crossing Detection & Snapshot
+px-alert-rules-engine — in-scope resolution, snapshot + alert detail persistence
+Reporting API
+px-report-service — SmartGeofenceAlertReportController (paginated + all)
+Notifications
+px-alert-rules-engine → SQS → px-notification-service — crossing notification queuing
+User Stories
+ID
+Priority
+Story
+US1
+P1
+Configure a Smart Geofence (mode toggle, config picker, validation)
+US2
+P1
+Automatic alert snapshot capture at boundary crossing (entry/exit)
+US3
+P2
+View alert health report per location (crossings, drill-down, filter)
+US4
+P3
+Notifications for all boundary crossings (with/without active alerts)
+Edge Cases
+ID
+Edge Case
+EC-1
+Referenced alert configuration deleted/deactivated after save — silent exclusion from scope
+EC-2
+Same trailer belongs to multiple selected configurations — union, evaluated once per crossing
+EC-3
+Trailer enters but no exit event is ever received (e.g. GPS loss) — open/incomplete crossing
+EC-4
+Standard and Smart configurations saved for the same boundary — evaluated independently
+
+Component UI Test Cases
+Alert Configuration Form Geofence Mode Behavior
+Purpose: Validate the Standard/Smart geofence mode toggle, the existing-alert-configuration picker, save validation, and mode-switch state handling on the alert configuration form.
+Background:
+  Given the user is on the geofence alert configuration form
+  And the user has permission to create or edit alert configurations for the current account
+
+Scenario: Selecting Smart mode replaces asset selection with the existing alert configuration picker
+Given the alert configuration form is displayed with the asset/asset-group selection section visible
+When the user selects the "Smart" geofence mode radio option
+Then the asset/asset-group selection section is hidden
+And a multi-select picker for existing alert configurations within the account is displayed in its place
+Automation Recommendation: automatable    Traceability: US1-AC1, FR-001, FR-002, FR-003
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Saving a Smart Geofence configuration with configurations selected persists correctly and stores no assets
+Given Smart mode is active and the user selects one or more existing alert configurations
+When the user saves the configuration
+Then the configuration is saved with mode set to Smart
+And the selected existing alert configurations are recorded
+And no assets or asset-groups are stored on this configuration
+Automation Recommendation: automatable    Traceability: US1-AC2, FR-002, FR-004
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Save is blocked when Smart mode is active and no existing alert configuration is selected
+Given Smart mode is active and no existing alert configuration has been selected
+When the user attempts to save the form
+Then validation prevents the save from proceeding
+And a clear error message is displayed indicating at least one existing alert configuration is required
+Automation Recommendation: automatable    Traceability: US1-AC3, FR-004
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Switching from Smart mode back to Standard mode restores asset selection
+Given Smart mode is active with the existing-alert-configuration picker displayed
+When the user switches the geofence mode back to "Standard"
+Then the asset/asset-group selection section reappears
+And the existing-alert-configuration picker is hidden
+Automation Recommendation: automatable    Traceability: US1-AC4, FR-001
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Shared configuration fields retain their values when switching between Standard and Smart mode on an unsaved form
+Given the user has entered values in the shared fields (geofence boundary, recipients, schedule, messaging) on an unsaved form
+When the user switches the geofence mode between Standard and Smart one or more times
+Then the shared field values are not lost or corrupted
+Automation Recommendation: automatable    Traceability: FR-014, FR-015
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario Outline: Geofence mode selection controls which selector is visible
+Given the alert configuration form is displayed
+When the user selects the "<mode>" geofence mode
+Then the "<visible_selector>" is displayed
+And the "<hidden_selector>" is hidden
+Examples:
+mode
+visible_selector
+hidden_selector
+Standard
+asset/asset-group selector
+existing alert configuration picker
+Smart
+existing alert configuration picker
+asset/asset-group selector
+Automation Recommendation: automatable    Traceability: US1-AC1, US1-AC4, FR-001, FR-002, FR-003
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Manager completes a Smart Geofence configuration within the 5-minute usability target
+Given a yard or operations manager opens the alert configuration form for the first time in this session
+When the manager selects Smart mode, selects existing alert configurations, sets the geofence boundary, configures recipients and schedule, and saves
+Then the configuration is saved successfully
+And the end-to-end elapsed time from opening the form to a saved configuration is under 5 minutes
+Automation Recommendation: manual    Traceability: US1-AC2, SC-001
+──────────────────────────────────────────────────────────────────────────────────────────
+Smart Geofence Alert Health Report View Behavior
+Purpose: Validate the per-location alert health report list, crossing drill-down, visual distinction of unresolved-alert exits, and date-range filtering.
+Background:
+  Given a Smart Geofence location has one or more recorded crossing snapshots
+  And the user has permission to view the alert health report for the location
+
+Scenario: Alert health report lists crossings with entry and exit alert counts
+Given the user opens the alert health report for a Smart Geofence location
+When the report loads
+Then the report displays a list of crossings with trailer identifier, entry alert count, and exit alert count for each crossing
+Automation Recommendation: automatable    Traceability: US3-AC1, FR-010
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Expanding a crossing row reveals individual entry and exit alert details
+Given a crossing row is shown in the alert health report
+When the user expands the row
+Then the individual alerts for both the entry and exit snapshots are displayed
+And each alert shows its type, category, and trigger
+Automation Recommendation: automatable    Traceability: US3-AC2, FR-010
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Crossings with unresolved exit alerts are visually distinguished
+Given a trailer exited a Smart Geofence with one or more active alerts
+When that crossing is shown in the alert health report
+Then the crossing row is visually distinguished from crossings where the exit alert count is zero
+Automation Recommendation: manual    Traceability: US3-AC3, FR-012
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Date-range filter restricts the report to crossings within the selected range
+Given the alert health report is displayed with crossings spanning multiple dates
+When the user applies a date-range filter
+Then the report shows only crossings within that range
+Automation Recommendation: automatable    Traceability: US3-AC4, FR-011
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: An open crossing with no exit event is shown as incomplete in the report
+Given a trailer entered a Smart Geofence and no exit event was ever received
+When the alert health report is displayed for that location
+Then the crossing is shown as open/incomplete with the entry snapshot present and no exit data
+Automation Recommendation: automatable    Traceability: EC-3, FR-010
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Reviewer identifies a trailer that exited with unresolved alerts within 5 minutes of the exit event
+Given a trailer has just exited a Smart Geofence with one or more active alerts
+When a reviewer opens the alert health report within 5 minutes of the exit event
+Then the reviewer can identify the unresolved-alert crossing without additional investigation or manual data lookup
+Automation Recommendation: manual    Traceability: US3-AC3, SC-004
+──────────────────────────────────────────────────────────────────────────────────────────
+
+Component API Test Cases
+Alert Configuration API Smart Geofence Behavior
+Purpose: Validate the alert configuration API's handling of Smart geofence mode — create/update/read of geofenceMode and referencedAlertConfigKeys, and rejection of invalid payload combinations.
+Background:
+  Given the px-alert-notify-service API is operational
+  And required test data (existing STANDARD alert configurations) is available for the account
+
+Scenario: Successful request - create a Smart Geofence alert configuration
+When px-alert-notify-service sends POST request to /v{n}/alerts with a valid Smart geofence payload (geofenceMode=SMART, referencedAlertConfigKeys populated, no asset keys)
+Then the response status should be 2xx
+And the response should conform to the API contract, including the persisted geofenceMode and referencedAlertConfigKeys
+Automation Recommendation: automatable    Traceability: US1-AC2, FR-002, FR-004, FR-005
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Validation or error handling - Smart Geofence payload missing referencedAlertConfigKeys
+When px-alert-notify-service sends POST request to /v{n}/alerts with geofenceMode=SMART and an empty or missing referencedAlertConfigKeys list
+Then the response status should be 400
+And the response should contain an error indicating at least one existing alert configuration is required
+And no configuration should be persisted
+Automation Recommendation: automatable    Traceability: US1-AC3, FR-004
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Validation or error handling - Smart Geofence payload includes asset or asset-group keys
+When px-alert-notify-service sends POST request to /v{n}/alerts with geofenceMode=SMART and non-empty trailerAssetKeys or trailerAssetGroupKeys
+Then the response status should be 400
+And the response should contain an error indicating assets are not permitted in Smart mode
+And no configuration should be persisted with asset associations
+Automation Recommendation: automatable    Traceability: FR-002
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful request - read a Smart Geofence alert configuration
+When px-alert-notify-service sends GET request to /v{n}/alerts/{key} for a saved Smart geofence configuration
+Then the response status should be 200
+And the response should include geofenceMode=SMART and the full list of referencedAlertConfigKeys
+Automation Recommendation: automatable    Traceability: US1-AC2, FR-002
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Validation or error handling - referenced alert configuration key does not reference a STANDARD configuration
+When px-alert-notify-service sends POST request to /v{n}/alerts with a referencedAlertConfigKeys entry pointing to another SMART configuration
+Then the response status should be 400
+And the response should contain an error indicating only STANDARD configurations may be referenced
+And no configuration should be persisted
+Automation Recommendation: automatable    Traceability: FR-005
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario Outline: Input variation matrix - geofence mode payload combinations
+When px-alert-notify-service sends request with <payload_variant>
+Then <expected outcome> should occur
+Examples:
+payload_variant
+expected outcome
+geofenceMode=SMART, referencedAlertConfigKeys=[validKey], no asset keys
+2xx success, configuration persisted with mode SMART
+geofenceMode=SMART, referencedAlertConfigKeys=[], no asset keys
+400 validation error
+geofenceMode=STANDARD, trailerAssetKeys=[validKey]
+2xx success, unchanged existing behavior
+geofenceMode=SMART, referencedAlertConfigKeys=[selfKey] (self-reference)
+400 validation error
+Automation Recommendation: automatable    Traceability: US1-AC2, US1-AC3, FR-002, FR-004, FR-005
+──────────────────────────────────────────────────────────────────────────────────────────
+Smart Geofence Alert Health Report API Behavior
+Purpose: Validate the paginated and full Smart Geofence Alert Health Report endpoints — response shape, entry/exit counts, alert detail drill-down, and date-range filtering.
+Background:
+  Given the px-report-service API is operational
+  And crossing snapshot and alert detail test data exists for a Smart Geofence location
+
+Scenario: Successful request - paginated Smart Geofence Alert Health report
+When px-report-service sends POST request to /v{n}/reports/smartgeofencealert with a valid organizationKey, accountKey, and date range
+Then the response status should be 200
+And the response should conform to the API contract, returning crossings with trailer identifier, entry alert count, exit alert count, and alert detail arrays
+Automation Recommendation: automatable    Traceability: US3-AC1, US3-AC2, FR-010
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful request - Smart Geofence Alert Health report filtered by date range
+When px-report-service sends POST request to /v{n}/reports/smartgeofencealert with fromDate and toDate set to a bounded range
+Then the response status should be 200
+And the response should include only crossings whose snapshotDatetime falls within the requested range
+Automation Recommendation: automatable    Traceability: US3-AC4, FR-011
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Validation or error handling - report request with an invalid date range
+When px-report-service sends POST request to /v{n}/reports/smartgeofencealert with fromDate later than toDate
+Then the response status should be 400
+And the response should contain an error describing the invalid range
+And no partial or malformed result set should be returned
+Automation Recommendation: automatable    Traceability: FR-011
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful request - unpaginated full report retrieval
+When px-report-service sends POST request to /v{n}/reports/smartgeofencealert/all with a valid filter set
+Then the response status should be 200
+And the response should return the complete unpaginated set of matching crossings
+Automation Recommendation: automatable    Traceability: US3-AC1, FR-010
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario Outline: Input variation matrix - report crossing states
+When px-report-service sends request with <payload_variant>
+Then <expected outcome> should occur
+Examples:
+payload_variant
+expected outcome
+crossing with activeAlertCount=0 on exit
+crossing returned with activeAlertCount=0 and an empty alertDetails array
+crossing with activeAlertCount>0 on exit
+crossing returned with activeAlertCount>0 and populated alertDetails array
+crossing with entry snapshot only (no exit)
+crossing returned with entry fields populated and exit fields absent/null
+Automation Recommendation: automatable    Traceability: US2-AC3, US3-AC3, EC-3, FR-008, FR-012
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Report response time meets the platform's standard reporting response expectations under representative data volume
+When px-report-service sends POST request to /v{n}/reports/smartgeofencealert against a representative production-scale volume of crossing snapshots and alert details
+Then the response is returned within a time consistent with the platform's other standard reporting endpoints
+And no timeout or degraded response is observed
+Automation Recommendation: manual    Traceability: US3-AC4, SC-005
+──────────────────────────────────────────────────────────────────────────────────────────
+
+Integration Test Cases
+Alert Rules Engine to Snapshot Persistence Interaction
+Purpose: Validate that the alert rules engine correctly resolves in-scope trailers for a Smart Geofence, captures crossing snapshots and alert details on boundary events, and persists them without disrupting existing geofence processing.
+Background:
+  Given px-alert-rules-engine is operational and consuming geofence crossing events
+  And a Smart Geofence configuration references one or more existing STANDARD alert configurations
+  And the asset schema tables mmr_smart_geofence_ref_config, dat_smart_geofence_crossing_snapshot, and dat_smart_geofence_alert_detail exist
+
+Scenario: Successful interaction - entry crossing produces a persisted snapshot with alert details
+When an in-scope trailer with active alerts crosses into a Smart Geofence boundary
+Then the rules engine should resolve the trailer as in-scope via the union of referenced configuration asset sets
+And a dat_smart_geofence_crossing_snapshot row should be persisted with crossing_direction=ENTRY, the trailer identifier, geofence identifier, timestamp, and active alert count
+And one dat_smart_geofence_alert_detail row should be persisted per active alert, each with type, category, and trigger
+Automation Recommendation: automatable    Traceability: US2-AC1, FR-005, FR-006, FR-007
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful interaction - exit crossing produces a separate persisted snapshot reflecting alert state at exit
+When the same trailer later crosses out of the Smart Geofence boundary
+Then a separate dat_smart_geofence_crossing_snapshot row should be persisted with crossing_direction=EXIT and the alert state at the moment of exit
+And the entry snapshot should remain unchanged
+Automation Recommendation: automatable    Traceability: US2-AC2, FR-006
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful interaction - zero-alert crossing still produces a snapshot
+When a trailer with zero active alerts crosses a Smart Geofence boundary
+Then a snapshot should be persisted with active_alert_count=0 and no dat_smart_geofence_alert_detail rows
+Automation Recommendation: automatable    Traceability: US2-AC3, FR-008
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful interaction - trailer belonging to multiple selected configurations is evaluated once
+When a trailer that belongs to more than one of the Smart Geofence's selected existing alert configurations crosses the boundary
+Then exactly one snapshot should be persisted for that trailer and crossing direction
+And the notification payload should include the union of active alert details from all applicable configurations, not duplicated per configuration
+Automation Recommendation: automatable    Traceability: EC-2, FR-005
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful interaction - deactivated referenced configuration is silently excluded from scope
+When a previously referenced existing alert configuration is deleted or deactivated
+And a trailer that belonged only to that deactivated configuration crosses the Smart Geofence boundary
+Then no snapshot should be persisted for that trailer
+And the remaining selected configurations should continue to be evaluated normally with no error surfaced
+Automation Recommendation: automatable    Traceability: EC-1, FR-013
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Failure or resilience behavior - out-of-scope trailer produces no snapshot
+When a trailer that does not belong to any of the Smart Geofence's selected existing alert configurations crosses the boundary
+Then no dat_smart_geofence_crossing_snapshot row should be persisted for that trailer at that geofence
+And no unintended side effects should occur to other in-scope trailers' processing
+Automation Recommendation: automatable    Traceability: US2-AC4
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Failure or resilience behavior - snapshot persistence failure does not interrupt geofence event processing
+When the snapshot persistence step fails for a given crossing event due to a downstream data error
+Then the failure should be logged
+And the main geofence event processing flow should continue uninterrupted for other trailers and configurations
+Automation Recommendation: automatable    Traceability: FR-007
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful interaction - independent evaluation of Standard and Smart configurations on the same boundary
+When a geofence has both a Standard and a Smart alert configuration saved for the same boundary
+And a trailer in scope of both crosses the boundary
+Then each configuration should be evaluated independently
+And the Smart configuration's snapshot capture should not be affected by the Standard configuration's processing, or vice versa
+Automation Recommendation: automatable    Traceability: EC-4
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario Outline: Interaction variation matrix - in-scope resolution outcomes
+When a trailer crosses the Smart Geofence boundary under <input_variant>
+Then <expected interaction outcome> should occur
+Examples:
+input_variant
+expected interaction outcome
+trailer in exactly one referenced configuration
+one snapshot persisted, scoped alerts from that configuration only
+trailer in two referenced configurations (overlap)
+one snapshot persisted, union of alert details from both configurations
+trailer in zero referenced configurations
+no snapshot persisted
+referenced configuration deactivated between crossings
+trailer silently drops out of scope for subsequent crossings
+Automation Recommendation: automatable    Traceability: US2-AC1, US2-AC4, EC-1, EC-2, FR-005, FR-013
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Snapshot capture completes within 60 seconds under real GPS connectivity in a staging environment
+When an in-scope trailer with active GPS connectivity crosses a Smart Geofence boundary in a staging environment with real IoT ingest
+Then the crossing snapshot should be persisted within 60 seconds of the boundary event
+And this holds across a representative sample of trailers, achieving a 100% capture rate for trailers with active GPS connectivity
+Automation Recommendation: manual    Traceability: US2-AC1, SC-002
+──────────────────────────────────────────────────────────────────────────────────────────
+
+Message Broker Test Cases
+Smart Geofence Crossing Notification Queuing
+Purpose: Validate that a notification message is queued for every Smart Geofence boundary crossing, with correct payload content and schedule-window suppression behavior.
+Background:
+  Given a message broker (SQS) is operational
+  And px-alert-rules-engine is configured as the producer and px-notification-service as the consumer for crossing notifications
+  And a Smart Geofence configuration has one or more notification recipients and a defined schedule window
+  And required test data (in-scope trailer with a known alert state) is available
+
+Scenario: Successful message flow - crossing with active alerts queues a notification with full alert detail
+Given an in-scope trailer with one or more active alerts crosses the Smart Geofence boundary within the configured schedule window
+When the crossing event is processed by px-alert-rules-engine
+Then a SmartGeofenceCrossingPayload message should be published to the notification queue
+And the message should be consumed by px-notification-service
+And the message should contain the trailer identifier, crossing direction, geofence name, and the union of all individual active alert details (type, category, trigger)
+And each configured recipient should receive the notification
+Automation Recommendation: automatable    Traceability: US4-AC1, FR-009
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Successful message flow - zero-alert crossing still queues a notification with a clean indicator
+Given an in-scope trailer with zero active alerts crosses the Smart Geofence boundary within the configured schedule window
+When the crossing event is processed by px-alert-rules-engine
+Then a SmartGeofenceCrossingPayload message should be published to the notification queue
+And the message should contain the trailer identifier, crossing direction, geofence name, and an explicit indicator that no active alerts are present
+And the expected business outcome (recipient notified of a clean crossing) should occur
+Automation Recommendation: automatable    Traceability: US4-AC2, FR-009
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Message failure or resilience behavior - crossing outside the configured schedule window suppresses the notification
+Given a crossing event occurs outside the Smart Geofence's configured schedule window
+When px-alert-rules-engine evaluates the crossing for notification
+Then no notification message should be published to the queue at that time
+And the notification should be delivered at the next scheduled window instead, consistent with existing geofence alert behavior
+Automation Recommendation: automatable    Traceability: US4-AC3
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Message failure or resilience behavior - notification queuing failure does not block snapshot persistence
+Given the notification queue is unavailable or rejects the publish attempt
+When a Smart Geofence boundary crossing is processed
+Then the crossing snapshot should still be persisted successfully
+And the notification failure should be logged
+And no unintended side effects should occur to subsequent crossing processing
+Automation Recommendation: automatable    Traceability: FR-006, FR-007, SC-006
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario Outline: Message variation matrix - notification payload by alert state
+When a message is published with "<payload_variant>"
+Then "<expected outcome>" should occur
+Examples:
+payload_variant
+expected outcome
+activeAlertCount=0
+notification includes clean indicator, no alert detail entries
+activeAlertCount=1
+notification includes exactly one alert detail (type, category, trigger)
+activeAlertCount>1 across multiple referenced configurations
+notification includes the deduplicated union of alert details
+Automation Recommendation: automatable    Traceability: US4-AC1, US4-AC2, EC-2, FR-009
+──────────────────────────────────────────────────────────────────────────────────────────
+Scenario: Configured recipients receive and can read the crossing notification in their actual delivery channel
+Given a Smart Geofence has one or more configured recipients with real delivery addresses in a staging environment
+When a trailer crosses the boundary with and without active alerts across two separate crossings
+Then each recipient receives a legible notification for both crossings in their actual inbox or channel
+And no crossing is skipped due to zero-alert status
+Automation Recommendation: manual    Traceability: US4-AC1, US4-AC2, SC-007
+──────────────────────────────────────────────────────────────────────────────────────────
+
+Traceability Summary
+Every acceptance scenario, edge case, and functional requirement in the specification maps to at least one test case above. Success Criteria (SC-001, SC-002, SC-004, SC-005, SC-006, SC-007) are each covered by a dedicated manual scenario where automated, isolated verification is not practical (timing/perf under real infrastructure, visual/UX judgment, real-channel delivery).
+Spec Reference
+Covered By
+US1-AC1 .. AC4
+Component UI — Alert Configuration Form Geofence Mode Behavior
+US2-AC1 .. AC4
+Integration — Alert Rules Engine to Snapshot Persistence Interaction
+US3-AC1 .. AC4
+Component UI — Alert Health Report View; Component API — Alert Health Report API
+US4-AC1 .. AC3
+Message Broker — Smart Geofence Crossing Notification Queuing
+EC-1 (deactivated ref config)
+Integration
+EC-2 (overlapping trailer union)
+Integration; Message Broker (outline)
+EC-3 (entry without exit / GPS loss)
+Component UI (report); Component API (outline)
+EC-4 (Standard + Smart same boundary)
+Integration
+FR-001 .. FR-015
+Distributed across all four test type files (see individual Traceability lines)
+SC-001 (5-min configuration)
+Component UI — manual
+SC-002 (60s capture, 100% rate)
+Integration — manual
+SC-004 (5-min unresolved-alert identifiability)
+Component UI — manual
+SC-005 (report response time)
+Component API — manual
+SC-006 (zero crossings dropped)
+Message Broker — automatable
+SC-007 (delivery to all recipients)
+Message Broker — manual
+Automation Mix
+Six scenarios are marked manual: visual/UX judgment (crossing report row distinction), end-to-end usability timing (SC-001, SC-004), and checks that require real infrastructure outside an isolated component test — real GPS/IoT ingest timing (SC-002), representative-volume response time (SC-005), and real-channel notification delivery (SC-007). All other scenarios are recommended automatable, consistent with the Determinism and Isolation rules in the QA Constitution test-case-format contracts.
+Notes
+Source Gherkin test case files: smart-geofence-alert-component-ui-test-cases.md, smart-geofence-alert-component-api-test-cases.md, smart-geofence-alert-integration-test-cases.md, smart-geofence-alert-message-broker-test-cases.md (this folder). Generated following the qa-test-case-generator skill and QA Constitution test-case-format contracts (@safe-fleet/qa-ai-modules).
